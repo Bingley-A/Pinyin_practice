@@ -180,7 +180,16 @@ img.stroke-gif{
       .choices{grid-template-columns:1fr}
     }
     img.stroke-gif{max-width:180px;max-height:180px;display:block;margin:8px auto}
-
+.dojo-points {
+  font-size: 22px; /* Larger than encourage (18px) */
+  font-weight: 900;
+  color: var(--c1); /* Red color, consistent with theme */
+  margin-top: 12px;
+  padding: 10px 20px;
+  border: 3px solid var(--c1); /* Red border */
+  border-radius: 12px; /* Rounded corners */
+  display: none; /* 默认隐藏 */
+}
     /* 奖励动画 */
     .reward-animation {
       position:fixed;
@@ -291,6 +300,68 @@ img.stroke-gif{
     opacity: 0;
   }
 }
+
+    /* 汉字选择弹窗样式 */
+    #char-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw; /* 使用视口宽度，而不是父容器宽度 */
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px; /* 添加一些边距 */
+}
+
+.modal-content {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  width: 95vw; /* 使用视口宽度的95% */
+  max-width: 1000px; /* 最大宽度1000px */
+  max-height: 90vh; /* 增加最大高度 */
+  overflow-y: auto;
+  box-sizing: border-box; /* 确保padding包含在宽度计算中 */
+}
+    .grade-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+      gap: 5px;
+      margin-bottom: 20px;
+    }
+    .char-btn {
+      font-size: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      padding: 5px;
+    }
+    .char-btn.selected {
+      background: #FFB74D;
+      color: white;
+    }
+    .select-all-btn {
+      padding: 5px 10px;
+      background: linear-gradient(90deg,var(--c3),var(--c4));
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .modal-footer {
+      text-align: center;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -332,6 +403,7 @@ img.stroke-gif{
             <label for="custom-num" style="font-weight:800">自定义：</label>
             <input id="custom-num" class="custom-input" type="number" min="1" placeholder="数量">
             <div style="font-size:13px;color:#666">（超过最大值会自动取最大）</div>
+            <button id="select-chars" style="background:linear-gradient(90deg,var(--c4),var(--c5));border:none;color:#fff;padding:8px 12px;border-radius:10px;font-weight:800;cursor:pointer">选择汉字</button>
           </div>
         </div>
 
@@ -387,6 +459,7 @@ img.stroke-gif{
           <div style="font-weight:900">本轮完成 🎉</div>
           <div class="score-big" id="final-score">0 / 0</div>
           <div class="encourage" id="encourage"></div>
+          <div class="dojo-points" id="dojo-points"></div>
           <div style="margin-top:12px;display:flex;gap:10px;justify-content:center">
             <button id="retry-btn" class="start-btn">再来一次 🔁</button>
             <button id="back-home-btn" class="home-btn">返回首页 🏠</button>
@@ -396,6 +469,17 @@ img.stroke-gif{
     </main>
 
     <footer>快乐学汉字 🎈</footer>
+  </div>
+
+  <!-- 汉字选择弹窗 -->
+  <div id="char-modal">
+    <div class="modal-content">
+      <div id="grade-sections"></div>
+      <div class="modal-footer">
+        <button id="start-custom" class="start-btn">开始练习</button>
+        <button id="cancel-modal" class="home-btn">取消</button>
+      </div>
+    </div>
   </div>
 
   <audio id="audio" preload="auto" style="display:none"></audio>
@@ -455,7 +539,7 @@ img.stroke-gif{
       "己":{pinyinBase:"ji",tone:3},"奶":{pinyinBase:"nai",tone:3},"爷":{pinyinBase:"ye",tone:2},"房":{pinyinBase:"fang",tone:2},"加":{pinyinBase:"jia",tone:1},
       "冷":{pinyinBase:"leng",tone:3},"秋":{pinyinBase:"qiu",tone:1},"等":{pinyinBase:"deng",tone:3},"于":{pinyinBase:"yu",tone:2},"喝":{pinyinBase:"he",tone:1},
       "知":{pinyinBase:"zhi",tone:1},"道":{pinyinBase:"dao",tone:4},"早":{pinyinBase:"zao",tone:3},"午":{pinyinBase:"wu",tone:3},"晚":{pinyinBase:"wan",tone:3},
-      "着":{pinyinBase:"zhe",tone:0},"累":{pinyinBase:"lei",tone:4},"睡":{pinyinBase:"shui",tone:4},"觉":{pinyinBase:"jiao",tone:4},"床":{pinyinBase:"chuang",tone:2},
+      "着":{pinyinBase:"zhe",tone:1},"累":{pinyinBase:"lei",tone:4},"睡":{pinyinBase:"shui",tone:4},"觉":{pinyinBase:"jiao",tone:4},"床":{pinyinBase:"chuang",tone:2},
       "画":{pinyinBase:"hua",tone:4},"红":{pinyinBase:"hong",tone:2},"白":{pinyinBase:"bai",tone:2},"云":{pinyinBase:"yun",tone:2},"把":{pinyinBase:"ba",tone:3},
       "拿":{pinyinBase:"na",tone:2},"又":{pinyinBase:"you",tone:4},"色":{pinyinBase:"se",tone:4},"心":{pinyinBase:"xin",tone:1},
 
@@ -745,6 +829,11 @@ img.stroke-gif{
     const recStatus = document.getElementById("rec-status");
     const userRecAudio = document.getElementById("user-rec-audio");
     const correctAnswerEl = document.getElementById("correct-answer");
+    const selectCharsBtn = document.getElementById("select-chars");
+    const charModal = document.getElementById("char-modal");
+    const gradeSections = document.getElementById("grade-sections");
+    const startCustomBtn = document.getElementById("start-custom");
+    const cancelModalBtn = document.getElementById("cancel-modal");
 
     /*************************************************************************
      * 变量定义
@@ -764,6 +853,9 @@ img.stroke-gif{
     let mediaRecorder = null;
     let recordedChunks = [];
     let userRecordings = {}; // {questionIndex: blobUrl}
+
+    let selectedChars = new Set();
+    let isCustomChars = false;
 
     // init selections
     gradeBtns.forEach(btn=>{
@@ -818,6 +910,93 @@ img.stroke-gif{
     }
 
     /*************************************************************************
+     * 汉字选择弹窗逻辑
+     *************************************************************************/
+    function populateModal() {
+      gradeSections.innerHTML = "";
+      Object.keys(gradeChars).forEach(grade => {
+        const section = document.createElement("div");
+        const header = document.createElement("div");
+        header.className = "grade-header";
+        const title = document.createElement("h3");
+        title.textContent = `${["","一年级","二年级","三年级","四年级"][grade]} (${gradeChars[grade].length} 个)`;
+        const selectAllBtn = document.createElement("button");
+        selectAllBtn.className = "select-all-btn";
+        selectAllBtn.textContent = "选择全部";
+        header.appendChild(title);
+        header.appendChild(selectAllBtn);
+
+        const grid = document.createElement("div");
+        grid.className = "char-grid";
+        gradeChars[grade].forEach(ch => {
+          const btn = document.createElement("button");
+          btn.className = "char-btn";
+          btn.dataset.char = ch;
+          btn.textContent = ch;
+          btn.addEventListener("click", () => {
+            btn.classList.toggle("selected");
+            if (btn.classList.contains("selected")) {
+              selectedChars.add(ch);
+            } else {
+              selectedChars.delete(ch);
+            }
+          });
+          grid.appendChild(btn);
+        });
+
+        selectAllBtn.addEventListener("click", () => {
+          grid.querySelectorAll(".char-btn").forEach(btn => {
+            btn.classList.add("selected");
+            selectedChars.add(btn.dataset.char);
+          });
+        });
+
+        section.appendChild(header);
+        section.appendChild(grid);
+        gradeSections.appendChild(section);
+      });
+    }
+
+    selectCharsBtn.addEventListener("click", () => {
+      selectedChars.clear();
+      populateModal();
+      charModal.style.display = "flex";
+    });
+
+    cancelModalBtn.addEventListener("click", () => {
+      charModal.style.display = "none";
+    });
+
+    startCustomBtn.addEventListener("click", () => {
+      if (selectedChars.size === 0) {
+        alert("请至少选择一个汉字！");
+        return;
+      }
+      pool = Array.from(selectedChars).map(ch => {
+        const info = pinyinMap[ch];
+        return {char: ch, pinyinBase: info ? info.pinyinBase : ch, tone: info ? info.tone || 0 : 0};
+      });
+      total = pool.length;
+      order = generateOrderForPool(pool);
+      score = 0; cur = 0;
+      consecutiveCorrect = 0;
+      isCustomChars = true;
+
+      charModal.style.display = "none";
+      document.getElementById("home").style.display = "none";
+      document.getElementById("game").style.display = "block";
+      document.getElementById("end").style.display = "none";
+      gameGradeEl.textContent = "自定义选字";
+      qCountEl.textContent = `${cur+1} / ${total}`;
+      scoreText.textContent = `得分：${score}`;
+      progressBar.style.width = `0%`;
+
+      // clear recordings map for new round
+      userRecordings = {};
+      showQuestion(0);
+    });
+
+    /*************************************************************************
      * 开始游戏
      *************************************************************************/
     startBtn.addEventListener("click", ()=>{
@@ -839,6 +1018,7 @@ img.stroke-gif{
       score = 0; cur = 0;
       consecutiveCorrect = 0;
       order = generateOrderForPool(pool);
+      isCustomChars = false;
 
       document.getElementById("home").style.display = "none";
       document.getElementById("game").style.display = "block";
@@ -1123,6 +1303,36 @@ choicesEl.appendChild(tonePrompt);
       const percentage = Math.round((score/total)*100);
       finalScoreEl.textContent = `${score} / ${total} = ${percentage}%`;
       
+      // 计算Dojo分
+let dojoPoints = 0;
+let dojoText = "";
+const dojoPointsEl = document.getElementById("dojo-points");
+if (total >= 20) { // 仅当题目数量>=20时计算Dojo分
+  if (percentage >= 60 && percentage < 70) {
+    dojoPoints = 1;
+    dojoText = "恭喜获得1个Dojo分";
+  } else if (percentage >= 70 && percentage < 80) {
+    dojoPoints = 2;
+    dojoText = "恭喜获得2个Dojo分";
+  } else if (percentage >= 80 && percentage < 90) {
+    dojoPoints = 3;
+    dojoText = "恭喜获得3个Dojo分";
+  } else if (percentage >= 90 && percentage < 100) {
+    dojoPoints = 4;
+    dojoText = "恭喜获得4个Dojo分";
+  } else if (percentage === 100) {
+    dojoPoints = 5;
+    dojoText = "恭喜获得5个Dojo分";
+  }
+}
+// 根据是否有Dojo分控制显示
+if (dojoText) {
+  dojoPointsEl.textContent = dojoText;
+  dojoPointsEl.style.display = "inline-block"; // 显示红框
+} else {
+  dojoPointsEl.style.display = "none"; // 隐藏红框
+}
+
       // 根据分数设置不同鼓励语
       let phrases;
       if (percentage >= 90) {
@@ -1167,6 +1377,10 @@ choicesEl.appendChild(tonePrompt);
       if (percentage >= 60) {
         showCelebrationAnimation(percentage);
       }
+
+      // 清空自定义选择
+      selectedChars.clear();
+      isCustomChars = false;
     }
 
 // 显示庆祝动画
@@ -1234,7 +1448,7 @@ function showCelebrationAnimation(percentage) {
       order = generateOrderForPool(pool);
       document.getElementById("end").style.display = "none";
       document.getElementById("game").style.display = "block";
-      gameGradeEl.textContent = `${["","一年级","二年级","三年级","四年级"][selectedGrade] || selectedGrade}`;
+      gameGradeEl.textContent = isCustomChars ? "自定义选字" : `${["","一年级","二年级","三年级","四年级"][selectedGrade] || selectedGrade}`;
       qCountEl.textContent = `${cur+1} / ${total}`;
       scoreText.textContent = `得分：${score}`;
       progressBar.style.width = `0%`;
@@ -1245,6 +1459,8 @@ function showCelebrationAnimation(percentage) {
       document.getElementById("end").style.display = "none";
       document.getElementById("game").style.display = "none";
       document.getElementById("home").style.display = "block";
+      selectedChars.clear();
+      isCustomChars = false;
     });
 
     // init defaults
